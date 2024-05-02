@@ -1,0 +1,33 @@
+//*******************************************************************
+// Multi Server Script Execute
+//
+// Reads all the files in the "User Files" folder and executes them
+// against each connection specified in the "Servers" folder.
+//
+// For more information about Aqua Open API visit link: http://docs.aquafold.com/ads/23.2/openapi/
+//*******************************************************************
+
+//*******************************************************************
+// Input parameters.
+//*******************************************************************
+var database = "tom1";
+var schema = "root";
+
+var userFiles = aqua.project.getUserFilesRootFolder().collectFilesRecursively();
+aqua.console.println("Number of files found in the User Files folder [" + userFiles.length + "]");
+var connections = aqua.project.getServerConnections();
+aqua.console.println("Number of connections found in the Servers folder [" + connections.length + "]\n");
+
+for (var i = 0; i < connections.length; i++) {
+	connections[i].connect();
+	connections[i].changeDatabase(database);
+
+	for (var j = 0; j < userFiles.length; j++) {
+		aqua.console.println("Executing statements in file [" + userFiles[j].getName() + "] in [" + connections[i].getName() + "]");
+		var result = connections[i].executeScript(userFiles[j].read());
+		aqua.console.println(result.getTextResults());
+		aqua.console.println("Execution of sql statements in [" + userFiles[j].getName() + "] completed.");
+	}
+
+	connections[i].disconnect();
+}
